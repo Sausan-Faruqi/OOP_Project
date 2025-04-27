@@ -7,7 +7,7 @@
 #include <iostream>
 
 const int SCREEN_WIDTH = 800;
-const int SCREEN_HEIGHT = 600;
+const int SCREEN_HEIGHT = 750;
 const int PLAYER_SIZE = 32;
 const int CAR_WIDTH = 80;
 const int CAR_HEIGHT = 40;
@@ -28,7 +28,7 @@ public:
     /*ALLEGRO_BITMAP* frogSprite;*/
     Player() {
         x = SCREEN_WIDTH / 2 - PLAYER_SIZE / 2;
-        y = SCREEN_HEIGHT - PLAYER_SIZE;
+        y = (SCREEN_HEIGHT - 80) - PLAYER_SIZE ;
        /* frogSprite = al_load_bitmap("frogSprite.png");*/
         /*if (!frogSprite) { std::cerr << "Failed to load frog sprite." << std::endl; }*/
     }
@@ -102,13 +102,14 @@ private:
     std::vector<Log>logs;
     bool onLog = false;
 
-
+    ALLEGRO_BITMAP* background;
     int lives = 3;
     bool gameOver = false;
     ALLEGRO_DISPLAY* display;
     ALLEGRO_EVENT_QUEUE* queue;
     ALLEGRO_TIMER* timer;
-    ALLEGRO_FONT* font;
+    ALLEGRO_FONT* font1;
+    ALLEGRO_FONT* font2;
     bool running = true;
     bool redraw = true;
 
@@ -120,8 +121,12 @@ public:
         al_init_image_addon();
         al_init_font_addon();
         al_init_ttf_addon();
-        font = al_load_ttf_font("PressStart2P-Regular.ttf", 15, 0);
-        if (!font) {
+        font1 = al_load_ttf_font("PressStart2P-Regular.ttf", 15, 0);
+        if (!font1) {
+            std::cerr << "Failed to load font" << std::endl;
+        }
+        font2 = al_load_ttf_font("PressStart2P-Regular.ttf", 25, 0);
+        if (!font2) {
             std::cerr << "Failed to load font" << std::endl;
         }
 
@@ -136,15 +141,20 @@ public:
         al_register_event_source(queue, al_get_timer_event_source(timer));
         al_register_event_source(queue, al_get_keyboard_event_source());
 
+        background = al_load_bitmap("background.png");
+        if (!background) {
+            std::cerr << "Failed to load background image." << std::endl;
+        }
 
-        cars.emplace_back(800, 200, CAR_SPEED);
-        cars.emplace_back(400, 200, CAR_SPEED);
-        cars.emplace_back(600, 300, CAR_SPEED + 1);
 
-        logs.emplace_back(100, 100, 2.0, 150);
-        logs.emplace_back(400, 100, 2.0, 150);
-        logs.emplace_back(200, 150, -2.5, 180);
-        logs.emplace_back(600, 150, -2.5, 180);
+        cars.emplace_back(800, 500, CAR_SPEED);
+        cars.emplace_back(400, 450, CAR_SPEED);
+        cars.emplace_back(600, 550, CAR_SPEED + 1);
+
+        logs.emplace_back(100, 150, 2.0, 150);
+        logs.emplace_back(400, 300, 2.0, 150);
+        logs.emplace_back(200, 200, -2.5, 180);
+        logs.emplace_back(600, 250, -2.5, 180);
 
 
 
@@ -155,7 +165,11 @@ public:
         al_destroy_timer(timer);
         al_destroy_event_queue(queue);
         al_destroy_display(display);
-        al_destroy_font(font);
+        al_destroy_font(font1);
+        al_destroy_font(font2);
+        if (background) {
+            al_destroy_bitmap(background); 
+        }
     }
 
     void run() {
@@ -221,7 +235,7 @@ public:
 
         onLog = false;
 
-        if (player.y < 200) {
+        if (player.y < 350) {
             onLog = false;
             for (auto& log : logs) {
                 if (log.isPlayerOnLog(player.x, player.y, PLAYER_SIZE)) {
@@ -276,9 +290,14 @@ public:
 
     void draw() {
         al_clear_to_color(al_map_rgb(0, 0, 0));
+
+        // Draw the background image first
+        if (background) {
+            al_draw_bitmap(background, 0, 0, 0);
+        }
         
 
-        al_draw_filled_rectangle(0, 0, SCREEN_WIDTH, 200, al_map_rgb(0, 3, 67));
+       /* al_draw_filled_rectangle(0, 0, SCREEN_WIDTH, 200, al_map_rgb(0, 3, 67))*/;
 
         for (auto& log : logs) {
             log.draw();
@@ -288,9 +307,9 @@ public:
             car.draw();
         }
 
-        al_draw_textf(font, al_map_rgb(255, 255, 255), 10, 10, 0, "Lives: %d", lives);
+        al_draw_textf(font1, al_map_rgb(255, 255, 255), 10, 10, 0, "Lives: %d", lives);
         if (gameOver) {
-            al_draw_textf(font, al_map_rgb(255, 0, 0), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "Game Over");
+            al_draw_textf(font2, al_map_rgb(255, 0, 0), SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "Game Over");
 
         }
         player.draw();
